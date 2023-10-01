@@ -3,6 +3,7 @@ class EJS_GameManager {
         this.EJS = EJS;
         this.Module = Module;
         this.FS = this.Module.FS;
+        
         this.functions = {
             restart: this.Module.cwrap('system_restart', '', []),
             getStateInfo: this.Module.cwrap('get_state_info', 'string', []), //these names are dumb
