@@ -48,4 +48,4 @@
 
     // Initialize the emulator when the document is ready
     onDocumentReady();
-})();
+})(); 
