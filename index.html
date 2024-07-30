@@ -14,7 +14,7 @@
             font-size: 20px;
             margin: 0;
             overflow: hidden;
-            background-color: #222
+            background-color: #222;
         }
         body, #box {
             display: flex;
@@ -33,11 +33,11 @@
             position: relative;
             flex-direction: column;
             transition-duration: 0.2s;
-            overflow: hidden
+            overflow: hidden;
         }
         #box:hover, #box[drag] {
             border-color: #38f;
-            color: #ddd
+            color: #ddd;
         }
         #input {
             cursor: pointer;
@@ -46,11 +46,11 @@
             top: 0;
             width: 100%;
             height: 100%;
-            opacity: 0
+            opacity: 0;
         }
         #display {
             width: 100%;
-            height: 100%
+            height: 100%;
         }
         select, button {
             padding: 0.6em 0.4em;
@@ -65,11 +65,11 @@
             border-radius: 0.4em;
             border: 1px solid #555;
             cursor: pointer;
-            transition-duration: 0.2s
+            transition-duration: 0.2s;
         }
         select:hover, button:hover {
             background-color: #666;
-            color: #ddd
+            color: #ddd;
         }
     </style>
 </head>
@@ -98,8 +98,11 @@
 
                 const blob = await response.blob();
                 
-                // Append .64z to the filename
+                // Create a File with a .64z extension
                 const file = new File([blob], "gamefile.64z", { type: blob.type });
+
+                // Create a URL for the file object
+                const fileURL = URL.createObjectURL(file);
 
                 const parts = fileUrl.split("/").pop().split(".");
 
@@ -176,7 +179,7 @@
                 window.EJS_player = "#game";
                 window.EJS_gameName = parts.shift();
                 window.EJS_biosUrl = "";
-                window.EJS_gameUrl = URL.createObjectURL(file);
+                window.EJS_gameUrl = fileURL;
                 window.EJS_core = core;
                 window.EJS_pathtodata = "data/";
                 window.EJS_startOnLoaded = true;
@@ -191,8 +194,7 @@
                 script.src = "data/loader.js";
                 document.body.appendChild(script);
             } catch (error) {
-                console.error('Error loading file:', error);
-                alert('Failed to load the file. Please check the URL and try again.');
+                console.error('Failed to start emulator:', error);
             }
         }
 
