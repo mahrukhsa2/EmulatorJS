@@ -89,116 +89,151 @@
         }
 
         async function startEmulator(fileUrl) {
-            const response = await fetch(fileUrl);
-            const blob = await response.blob();
-            const file = new File([blob], "gamefile", { type: blob.type });
-
-            const parts = fileUrl.split("/").pop().split(".");
-
-            const core = await (async (ext) => {
-                if (["fds", "nes", "unif", "unf"].includes(ext))
-                    return "nes";
-                if (["smc", "fig", "sfc", "gd3", "gd7", "dx2", "bsx", "swc"].includes(ext))
-                    return "snes";
-                if (["z64", "n64"].includes(ext))
-                    return "n64";
-                if (["pce"].includes(ext))
-                    return "pce";
-                if (["ngp", "ngc"].includes(ext))
-                    return "ngp";
-                if (["ws", "wsc"].includes(ext))
-                    return "ws";
-                if (["col", "cv"].includes(ext))
-                    return "coleco";
-                if (["nds", "gba", "gb", "z64", "n64"].includes(ext))
-                    return ext;
-                return await new Promise(resolve => {
-                    const cores = {
-                        "Nintendo 64": "n64",
-                        "Nintendo Game Boy": "gb",
-                        "Nintendo Game Boy Advance": "gba",
-                        "Nintendo DS": "nds",
-                        "Nintendo Entertainment System": "nes",
-                        "Super Nintendo Entertainment System": "snes",
-                        "PlayStation": "psx",
-                        "Virtual Boy": "vb",
-                        "Sega Mega Drive": "segaMD",
-                        "Sega Master System": "segaMS",
-                        "Sega CD": "segaCD",
-                        "Atari Lynx": "lynx",
-                        "Sega 32X": "sega32x",
-                        "Atari Jaguar": "jaguar",
-                        "Sega Game Gear": "segaGG",
-                        "Sega Saturn": "segaSaturn",
-                        "Atari 7800": "atari7800",
-                        "Atari 2600": "atari2600",
-                        "NEC TurboGrafx-16/SuperGrafx/PC Engine": "pce",
-                        "NEC PC-FX": "pcfx",
-                        "SNK NeoGeo Pocket (Color)": "ngp",
-                        "Bandai WonderSwan (Color)": "ws",
-                        "ColecoVision": "coleco"
-                    }
-                    const button = document.createElement("button");
-                    const select = document.createElement("select");
-                    for (const type in cores) {
-                        const option = document.createElement("option");
-                        option.value = cores[type];
-                        option.textContent = type;
-                        select.appendChild(option);
-                    }
-                    button.onclick = () => resolve(select[select.selectedIndex].value);
-                    button.textContent = "Load game";
-                    box.innerHTML = "";
-                    box.appendChild(select);
-                    box.appendChild(button);
-                });
-            })(parts.pop());
-
-            const div = document.createElement("div");
-            const sub = document.createElement("div");
-            const script = document.createElement("script");
-
-            sub.id = "game";
-            div.id = "display";
-
-            box.remove();
-            div.appendChild(sub);
-            document.body.appendChild(div);
-
-            window.EJS_player = "#game";
-            window.EJS_gameName = parts.shift();
-            window.EJS_biosUrl = "";
-            window.EJS_gameUrl = URL.createObjectURL(file);
-            window.EJS_core = core;
-            window.EJS_pathtodata = "data/";
-            window.EJS_startOnLoaded = true;
-
-            if (window.location.hostname === "demo.emulatorjs.org") {
-                window.EJS_AdUrl = "https://ads.emulatorjs.org/";
-                window.EJS_ready = function() {
-                    detectAdBlock("data:text/html;base64,PGh0bWw+PHN0eWxlPiNhZGJsb2Nre2JhY2tncm91bmQtY29sb3I6cmdiYSgwLDAsMCwuOCk7cG9zaXRpb246Zml4ZWQ7d2lkdGg6MTAwJTtoZWlnaHQ6MTAwJTt0b3A6MDtsZWZ0OjA7ei1pbmRleDoxMDAwO3RleHQtYWxpZ246Y2VudGVyO2NvbG9yOiNmZmZ9Ym9keSxodG1se2JhY2tncm91bmQtY29sb3I6dHJhbnNwYXJlbnR9PC9zdHlsZT48Ym9keSBzdHlsZT0ibWFyZ2luOjAiPjxkaXYgaWQ9ImFkYmxvY2siPjxoMT5IaSBBZGJsb2NrIFVzZXIhPC9oMT48cD5BZHMgb24gdGhpcyBwYWdlIG1heSBjb21lIGFuZCBnbyBkZXBlbmRpbmcgb24gaG93IG1hbnkgcGVvcGxlIGFyZSBmdW5kaW5nIHRoaXMgcHJvamVjdC48YnI+WW91IGNhbiBoZWxwIGZ1bmQgdGhpcyBwcm9qZWN0IG9uPGEgaHJlZj0iaHR0cHM6Ly9wYXRyZW9uLmNvbS9FbXVsYXRvckpTIj5wYXRyZW9uPC9hPjwvcD48L2Rpdj48L2JvZHk+PC9odG1sPg==");
+            try {
+                const response = await fetch(fileUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
                 }
+
+                const blob = await response.blob();
+                
+                // Append .64z to the filename
+                const file = new File([blob], "gamefile.64z", { type: blob.type });
+
+                const parts = fileUrl.split("/").pop().split(".");
+
+                const core = await (async (ext) => {
+                    if (["fds", "nes", "unif", "unf"].includes(ext))
+                        return "nes";
+                    if (["smc", "fig", "sfc", "gd3", "gd7", "dx2", "bsx", "swc"].includes(ext))
+                        return "snes";
+                    if (["z64", "n64"].includes(ext))
+                        return "n64";
+                    if (["pce"].includes(ext))
+                        return "pce";
+                    if (["ngp", "ngc"].includes(ext))
+                        return "ngp";
+                    if (["ws", "wsc"].includes(ext))
+                        return "ws";
+                    if (["col", "cv"].includes(ext))
+                        return "coleco";
+                    if (["nds", "gba", "gb", "z64", "n64"].includes(ext))
+                        return ext;
+                    return await new Promise(resolve => {
+                        const cores = {
+                            "Nintendo 64": "n64",
+                            "Nintendo Game Boy": "gb",
+                            "Nintendo Game Boy Advance": "gba",
+                            "Nintendo DS": "nds",
+                            "Nintendo Entertainment System": "nes",
+                            "Super Nintendo Entertainment System": "snes",
+                            "PlayStation": "psx",
+                            "Virtual Boy": "vb",
+                            "Sega Mega Drive": "segaMD",
+                            "Sega Master System": "segaMS",
+                            "Sega CD": "segaCD",
+                            "Atari Lynx": "lynx",
+                            "Sega 32X": "sega32x",
+                            "Atari Jaguar": "jaguar",
+                            "Sega Game Gear": "segaGG",
+                            "Sega Saturn": "segaSaturn",
+                            "Atari 7800": "atari7800",
+                            "Atari 2600": "atari2600",
+                            "NEC TurboGrafx-16/SuperGrafx/PC Engine": "pce",
+                            "NEC PC-FX": "pcfx",
+                            "SNK NeoGeo Pocket (Color)": "ngp",
+                            "Bandai WonderSwan (Color)": "ws",
+                            "ColecoVision": "coleco"
+                        }
+                        const button = document.createElement("button");
+                        const select = document.createElement("select");
+                        for (const type in cores) {
+                            const option = document.createElement("option");
+                            option.value = cores[type];
+                            option.textContent = type;
+                            select.appendChild(option);
+                        }
+                        button.onclick = () => resolve(select[select.selectedIndex].value);
+                        button.textContent = "Load game";
+                        box.innerHTML = "";
+                        box.appendChild(select);
+                        box.appendChild(button);
+                    });
+                })(parts.pop());
+
+                const div = document.createElement("div");
+                const sub = document.createElement("div");
+                const script = document.createElement("script");
+
+                sub.id = "game";
+                div.id = "display";
+
+                box.remove();
+                div.appendChild(sub);
+                document.body.appendChild(div);
+
+                window.EJS_player = "#game";
+                window.EJS_gameName = parts.shift();
+                window.EJS_biosUrl = "";
+                window.EJS_gameUrl = URL.createObjectURL(file);
+                window.EJS_core = core;
+                window.EJS_pathtodata = "data/";
+                window.EJS_startOnLoaded = true;
+
+                if (window.location.hostname === "demo.emulatorjs.org") {
+                    window.EJS_AdUrl = "https://ads.emulatorjs.org/";
+                    window.EJS_ready = function() {
+                        detectAdBlock("data:text/html;base64,PGh0bWw+PHN0eWxlPiNhZGJsb2Nre2JhY2tncm91bmQtY29sb3I6cmdiYSgwLDAsMCwuOCk7cG9zaXRpb246Zml4ZWQ7d2lkdGg6MTAwJTtoZWlnaHQ6MTAwJTt0b3A6MDtsZWZ0OjA7ei1pbmRleDoxMDAwO3RleHQtYWxpZ246Y2VudGVyO2NvbG9yOiNmZmZ9Ym9keSxodG1se2JhY2tncm91bmQtY29sb3I6dHJhbnNwYXJlbnR9PC9zdHlsZT48Ym9keSBzdHlsZT0ibWFyZ2luOjAiPjxkaXYgaWQ9ImFkYmxvY2siPjxoMT5IaSBBZGJsb2NrIFVzZXIhPC9oMT48cD5BZHMgb24gdGhpcyBwYWdlIG1heSBjb21lIGFuZCBnbyBkZXBlbmRpbmcgb24gaG93IG1hbnkgcGVvcGxlIGFyZSBmdW5kaW5nIHRoaXMgcHJvamVjdC48YnI+WW91IGNhbiBoZWxwIGZ1bmQgdGhpcyBwcm9qZWN0IG9uPGEgaHJlZj0iaHR0cHM6Ly9wYXRyZW9uLmNvbS9FbXVsYXRvckpTIj5wYXRyZW9uPC9hPjwvcD48L2Rpdj48L2JvZHk+PC9odG1sPg==");
+                    }
+                }
+                
+                script.src = "data/loader.js";
+                document.body.appendChild(script);
+            } catch (error) {
+                console.error('Error loading file:', error);
+                alert('Failed to load the file. Please check the URL and try again.');
             }
-            script.src = "data/loader.js";
-            document.body.appendChild(script);
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener('DOMContentLoaded', () => {
+            const box = document.getElementById('box');
+            const input = document.getElementById('input');
+
+            box.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                box.setAttribute('drag', '');
+            });
+
+            box.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                box.removeAttribute('drag');
+            });
+
+            box.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                box.removeAttribute('drag');
+                const files = e.dataTransfer.files;
+                if (files.length) {
+                    startEmulator(URL.createObjectURL(files[0]));
+                }
+            });
+
+            input.addEventListener('change', () => {
+                const files = input.files;
+                if (files.length) {
+                    startEmulator(URL.createObjectURL(files[0]));
+                }
+            });
+
+            // Check URL parameter for auto-start
             const romUrl = getParameterByName('rom');
             if (romUrl) {
                 startEmulator(romUrl);
             }
-
-            document.getElementById('input').addEventListener('change', async (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    const url = URL.createObjectURL(file);
-                    startEmulator(url);
-                }
-            });
-
-            document.getElementById('box').ondragover = () => document.getElementById('box').setAttribute("drag", true);
-            document.getElementById('box').ondragleave = () => document.getElementById('box').removeAttribute("drag");
         });
     </script>
 </body>
