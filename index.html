@@ -89,43 +89,13 @@
     </div>
 
     <script>
-        async function startEmulatorWithFile(fileUrl) {
-            const response = await fetch(fileUrl);
-            const arrayBuffer = await response.arrayBuffer();
-            const blob = new Blob([arrayBuffer]);
-            const url = URL.createObjectURL(blob);
-
+        function setupEmulator(fileUrl) {
+            // Setup emulator settings and start the game
             const fileName = fileUrl.split('/').pop();
             const ext = fileName.split('.').pop();
+            const core = getCoreForExtension(ext);
 
-            const core = await (async (ext) => {
-                if (["fds", "nes", "unif", "unf"].includes(ext))
-                    return "nes";
-                
-                if (["smc", "fig", "sfc", "gd3", "gd7", "dx2", "bsx", "swc"].includes(ext))
-                    return "snes";
-                
-                if (["z64", "n64"].includes(ext))
-                    return "n64";
-                
-                if (["pce"].includes(ext))
-                    return "pce";
-                
-                if (["ngp", "ngc"].includes(ext))
-                    return "ngp";
-                
-                if (["ws", "wsc"].includes(ext))
-                    return "ws";
-                
-                if (["col", "cv"].includes(ext))
-                    return "coleco";
-                
-                if (["nds", "gba", "gb", "z64", "n64"].includes(ext))
-                    return ext;
-                
-                return "nes"; // Default core if unknown
-            })(ext);
-
+            // Clear existing content
             const div = document.createElement("div");
             const sub = document.createElement("div");
             const script = document.createElement("script");
@@ -140,110 +110,83 @@
             window.EJS_player = "#game";
             window.EJS_gameName = fileName.split('.').shift();
             window.EJS_biosUrl = "";
-            window.EJS_gameUrl = url;
+            window.EJS_gameUrl = fileUrl;
             window.EJS_core = core;
             window.EJS_pathtodata = "data/";
             window.EJS_startOnLoaded = true;
 
-            if (window.location.hostname === "demo.emulatorjs.org") {
-                window.EJS_AdUrl = "https://ads.emulatorjs.org/";
-                window.EJS_ready = function() {
-                    detectAdBlock("data:text/html;base64,PGh0bWw+PHN0eWxlPiNhZGJsb2Nre2JhY2tncm91bmQtY29sb3I6cmdiYSgwLDAsMCwuOCk7cG9zaXRpb246Zml4ZWQ7d2lkdGg6MTAwJTtoZWlnaHQ6MTAwJTt0b3A6MDtsZWZ0OjA7ei1pbmRleDoxMDAwO3RleHQtYWxpZ246Y2VudGVyO2NvbG9yOiNmZmZ9Ym9keSxodG1se2JhY2tncm91bmQtY29sb3I6dHJhbnNwYXJlbnR9PC9zdHlsZT48Ym9keSBzdHlsZT0ibWFyZ2luOjAiPjxkaXYgaWQ9ImFkYmxvY2siPjxoMT5IaSBBZGJsb2NrIFVzZXIhPC9oMT48cD5BZHMgb24gdGhpcyBwYWdlIG1heSBjb21lIGFuZCBnbyBkZXBlbmRpbmcgb24gaG93IG1hbnkgcGVvcGxlIGFyZSBmdW5kaW5nIHRoaXMgcHJvamVjdC48YnI+WW91IGNhbiBoZWxwIGZ1bmQgdGhpcyBwcm9qZWN0IG9uPGEgaHJlZj0iaHR0cHM6Ly9wYXRyZW9uLmNvbS9FbXVsYXRvckpTIj5wYXRyZW9uPC9hPjwvcD48L2Rpdj48L2JvZHk+PC9odG1sPg==");
-                }
-            }
-
+            // Set up and load emulator
             script.src = "data/loader.js";
             document.body.appendChild(script);
-        }
 
-        function detectAdBlock(url) {
-            let adBlockEnabled = false;
-            try {
-                window.EJS_AdUrl = document.querySelector('iframe[src="' + window.EJS_AdUrl + '"]').src;
-            } catch (e) {
-                adBlockEnabled = true;
-            }
-            if (adBlockEnabled) {
-                window.EJS_adBlocked(url);
-            }
-        }
-
-        const params = new URLSearchParams(window.location.search);
-        const romUrl = params.get('rom');
-
-        if (romUrl) {
-            startEmulatorWithFile(romUrl);
-        }
-
-        document.getElementById('input').onchange = async () => {
-            const file = document.getElementById('input').files[0];
-            if (file) {
-                const fileUrl = URL.createObjectURL(file);
-
-                const parts = file.name.split(".");
-                const ext = parts.pop();
-
-                const core = await (async (ext) => {
-                    if (["fds", "nes", "unif", "unf"].includes(ext))
-                        return "nes";
-                    
-                    if (["smc", "fig", "sfc", "gd3", "gd7", "dx2", "bsx", "swc"].includes(ext))
-                        return "snes";
-                    
-                    if (["z64", "n64"].includes(ext))
-                        return "n64";
-                    
-                    if (["pce"].includes(ext))
-                        return "pce";
-                    
-                    if (["ngp", "ngc"].includes(ext))
-                        return "ngp";
-                    
-                    if (["ws", "wsc"].includes(ext))
-                        return "ws";
-                    
-                    if (["col", "cv"].includes(ext))
-                        return "coleco";
-                    
-                    if (["nds", "gba", "gb", "z64", "n64"].includes(ext))
-                        return ext;
-                    
-                    return "nes"; // Default core if unknown
-                })(ext);
-
-                const div = document.createElement("div");
-                const sub = document.createElement("div");
-                const script = document.createElement("script");
-
-                sub.id = "game";
-                div.id = "display";
-
-                document.getElementById('box').remove();
-                div.appendChild(sub);
-                document.body.appendChild(div);
-
-                window.EJS_player = "#game";
-                window.EJS_gameName = parts.shift();
-                window.EJS_biosUrl = "";
-                window.EJS_gameUrl = fileUrl;
-                window.EJS_core = core;
-                window.EJS_pathtodata = "data/";
-                window.EJS_startOnLoaded = true;
-
-                if (window.location.hostname === "demo.emulatorjs.org") {
-                    window.EJS_AdUrl = "https://ads.emulatorjs.org/";
-                    window.EJS_ready = function() {
-                        detectAdBlock("data:text/html;base64,PGh0bWw+PHN0eWxlPiNhZGJsb2Nre2JhY2tncm91bmQtY29sb3I6cmdiYSgwLDAsMCwuOCk7cG9zaXRpb246Zml4ZWQ7d2lkdGg6MTAwJTtoZWlnaHQ6MTAwJTt0b3A6MDtsZWZ0OjA7ei1pbmRleDoxMDAwO3RleHQtYWxpZ246Y2VudGVyO2NvbG9yOiNmZmZ9Ym9keSxodG1se2JhY2tncm91bmQtY29sb3I6dHJhbnNwYXJlbnR9PC9zdHlsZT48Ym9keSBzdHlsZT0ibWFyZ2luOjAiPjxkaXYgaWQ9ImFkYmxvY2siPjxoMT5IaSBBZGJsb2NrIFVzZXIhPC9oMT48cD5BZHMgb24gdGhpcyBwYWdlIG1heSBjb21lIGFuZCBnbyBkZXBlbmRpbmcgb24gaG93IG1hbnkgcGVvcGxlIGFyZSBmdW5kaW5nIHRoaXMgcHJvamVjdC48YnI+WW91IGNhbiBoZWxwIGZ1bmQgdGhpcyBwcm9qZWN0IG9uPGEgaHJlZj0iaHR0cHM6Ly9wYXRyZW9uLmNvbS9FbXVsYXRvckpTIj5wYXRyZW9uPC9hPjwvcD48L2Rpdj48L2JvZHk+PC9odG1sPg==");
-                    }
+            script.onload = () => {
+                if (typeof window.Module !== 'undefined' && typeof window.Module.callMain === 'function') {
+                    // Ensure the game starts directly
+                    const args = [window.EJS_gameUrl];
+                    window.Module.callMain(args);
+                } else {
+                    console.error("Emulator script did not load correctly.");
                 }
+            };
 
-                script.src = "data/loader.js";
-                document.body.appendChild(script);
+            script.onerror = (err) => {
+                console.error("Failed to load emulator script", err);
+            };
+        }
+
+        function getCoreForExtension(ext) {
+            const cores = {
+                "fds": "nes",
+                "nes": "nes",
+                "unif": "nes",
+                "unf": "nes",
+                "smc": "snes",
+                "fig": "snes",
+                "sfc": "snes",
+                "gd3": "snes",
+                "gd7": "snes",
+                "dx2": "snes",
+                "bsx": "snes",
+                "swc": "snes",
+                "z64": "n64",
+                "n64": "n64",
+                "pce": "pce",
+                "ngp": "ngp",
+                "ngc": "ngp",
+                "ws": "ws",
+                "wsc": "ws",
+                "col": "coleco",
+                "cv": "coleco",
+                "nds": "nds",
+                "gba": "gba",
+                "gb": "gba",
+            };
+            return cores[ext] || "nes"; // Default core if unknown
+        }
+
+        function handleFileInput() {
+            document.getElementById('input').onchange = async () => {
+                const file = document.getElementById('input').files[0];
+                if (file) {
+                    const fileUrl = URL.createObjectURL(file);
+                    setupEmulator(fileUrl);
+                }
+            };
+        }
+
+        function handleURLParam() {
+            const params = new URLSearchParams(window.location.search);
+            const romUrl = params.get('rom');
+            if (romUrl) {
+                setupEmulator(romUrl);
             }
-        };
+        }
 
         document.getElementById('box').ondragover = () => document.getElementById('box').setAttribute("drag", true);
         document.getElementById('box').ondragleave = () => document.getElementById('box').removeAttribute("drag");
+
+        handleFileInput();
+        handleURLParam();
     </script>
 </body>
 </html>
