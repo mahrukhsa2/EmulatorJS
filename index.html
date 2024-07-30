@@ -96,7 +96,7 @@
                     throw new Error(`Network response was not ok: ${response.statusText}`);
                 }
                 const blob = await response.blob();
-                
+
                 // Create a File object with a .64z extension
                 const file = new File([blob], "gamefile.64z", { type: blob.type });
 
@@ -141,39 +141,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const box = document.getElementById('box');
-            const input = document.getElementById('input');
-
-            box.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                box.setAttribute('drag', '');
-            });
-
-            box.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                box.removeAttribute('drag');
-            });
-
-            box.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                box.removeAttribute('drag');
-                const files = e.dataTransfer.files;
-                if (files.length) {
-                    startEmulator(URL.createObjectURL(files[0]));
-                }
-            });
-
-            input.addEventListener('change', () => {
-                const files = input.files;
-                if (files.length) {
-                    startEmulator(URL.createObjectURL(files[0]));
-                }
-            });
-
-            // Check URL parameter for auto-start
             const romUrl = getParameterByName('rom');
             if (romUrl) {
                 startEmulator(romUrl);
